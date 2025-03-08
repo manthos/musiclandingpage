@@ -12,6 +12,11 @@ export const platforms = {
     searchUrl: "https://www.googleapis.com/youtube/v3/search",
     icon: "SiYoutube",
   },
+  youtubeMusic: {
+    name: "YouTube Music",
+    searchUrl: "https://music.youtube.com/search",
+    icon: "SiYoutube",
+  },
   appleMusic: {
     name: "Apple Music",
     searchUrl: "https://api.music.apple.com/v1/catalog/us/search",
@@ -21,11 +26,6 @@ export const platforms = {
     name: "SoundCloud",
     searchUrl: "https://api.soundcloud.com/tracks",
     icon: "SiSoundcloud",
-  },
-  tidal: {
-    name: "Tidal",
-    searchUrl: "https://api.tidal.com/v1/search",
-    icon: "SiTidal",
   },
   amazonMusic: {
     name: "Amazon Music",
@@ -46,28 +46,28 @@ export async function searchAcrossPlatforms(title: string, artist: string): Prom
   const searchQuery = `${title} ${artist}`.trim();
   const links: StreamingLink[] = [];
 
-  // Simulate finding the track on Apple Music
+  // Add YouTube Music link
+  const youtubeMusicUrl = `https://music.youtube.com/search?q=${encodeURIComponent(searchQuery)}`;
+  links.push({
+    platform: 'youtubeMusic',
+    url: youtubeMusicUrl
+  });
+
+  // Add Apple Music link
   const appleMusicUrl = `https://music.apple.com/us/search?term=${encodeURIComponent(searchQuery)}`;
   links.push({
     platform: 'appleMusic',
     url: appleMusicUrl
   });
 
-  // Simulate finding the track on SoundCloud
+  // Add SoundCloud link
   const soundcloudUrl = `https://soundcloud.com/search?q=${encodeURIComponent(searchQuery)}`;
   links.push({
     platform: 'soundcloud',
     url: soundcloudUrl
   });
 
-  // Simulate finding the track on Tidal
-  const tidalUrl = `https://listen.tidal.com/search?q=${encodeURIComponent(searchQuery)}`;
-  links.push({
-    platform: 'tidal',
-    url: tidalUrl
-  });
-
-  // Simulate finding the track on Amazon Music
+  // Add Amazon Music link
   const amazonMusicUrl = `https://music.amazon.com/search/${encodeURIComponent(searchQuery)}`;
   links.push({
     platform: 'amazonMusic',
