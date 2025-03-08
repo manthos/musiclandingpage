@@ -36,8 +36,20 @@ export async function searchAcrossPlatforms(title: string, artist: string): Prom
   const searchQuery = `${title} ${artist}`.trim();
   const links: StreamingLink[] = [];
 
-  // TODO: Implement platform-specific search
-  // For now we'll return an empty array
+  // Simulate finding the track on Apple Music
+  const appleMusicUrl = `https://music.apple.com/us/search?term=${encodeURIComponent(searchQuery)}`;
+  links.push({
+    platform: 'appleMusic',
+    url: appleMusicUrl
+  });
+
+  // Simulate finding the track on SoundCloud
+  const soundcloudUrl = `https://soundcloud.com/search?q=${encodeURIComponent(searchQuery)}`;
+  links.push({
+    platform: 'soundcloud',
+    url: soundcloudUrl
+  });
+
   return links;
 }
 
