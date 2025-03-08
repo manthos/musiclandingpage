@@ -44,16 +44,19 @@ export interface StreamingLink {
 // Search for a track across multiple platforms
 export async function searchAcrossPlatforms(title: string, artist: string): Promise<StreamingLink[]> {
   const links: StreamingLink[] = [];
+  console.log('Searching across platforms for:', { title, artist });
 
-  // Try to find the track on Tidal using their API
+  // Try to find the track on Tidal
   const tidalResult = await searchTidalTrack(title, artist);
   if (tidalResult) {
+    console.log('Found track on Tidal');
     links.push(tidalResult);
   }
 
   // Try to find the track on YouTube Music
   const youtubeMusicResult = await searchYoutubeMusicTrack(title, artist);
   if (youtubeMusicResult) {
+    console.log('Found track on YouTube Music');
     links.push(youtubeMusicResult);
   }
 
@@ -79,6 +82,7 @@ export async function searchAcrossPlatforms(title: string, artist: string): Prom
     url: `https://music.amazon.com/search/${urlEncodedQuery}`
   });
 
+  console.log('Found streaming links:', links);
   return links;
 }
 

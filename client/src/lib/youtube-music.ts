@@ -14,14 +14,17 @@ const youtubeMusicSearchSchema = z.object({
 
 export async function searchYoutubeMusicTrack(title: string, artist: string) {
   try {
-    const searchQuery = `${title} ${artist} official audio`;
+    const searchQuery = `${title} ${artist} audio`;
     const params = new URLSearchParams({
       part: 'snippet',
       q: searchQuery,
       type: 'video',
       videoCategoryId: '10', // Music category
+      maxResults: '5', // Get more results to increase match chances
       key: import.meta.env.VITE_YOUTUBE_API_KEY
     });
+
+    console.log('Searching YouTube Music for:', { title, artist });
 
     const res = await fetch(
       `https://www.googleapis.com/youtube/v3/search?${params}`
@@ -39,27 +42,35 @@ export async function searchYoutubeMusicTrack(title: string, artist: string) {
       return null;
     }
 
-    // Get the first result that matches the criteria
-    const video = data.items[0];
+    // Look through results for a match
+    for (const video of data.items) {
+      const videoTitle = video.snippet.title.toLowerCase();
+      const videoArtist = video.snippet.channelTitle.toLowerCase();
 
-    // Verify if the title and artist roughly match
-    const normalizedSearchTitle = `${title} ${artist}`.toLowerCase();
-    const normalizedResultTitle = `${video.snippet.title} ${video.snippet.channelTitle}`.toLowerCase();
+      // More lenient matching - check if title contains the song name
+      // and either the video title or channel contains the artist name
+      const titleMatch = videoTitle.includes(title.toLowerCase());
+      const artistMatch = 
+        videoTitle.includes(artist.toLowerCase()) || 
+        videoArtist.includes(artist.toLowerCase());
 
-    // Simple matching - if the result contains both title and artist
-    if (!normalizedResultTitle.includes(title.toLowerCase()) || 
-        !normalizedResultTitle.includes(artist.toLowerCase())) {
-      console.log('YouTube Music result did not match criteria:', {
-        searchTitle: normalizedSearchTitle,
-        resultTitle: normalizedResultTitle
-      });
-      return null;
+      if (titleMatch && artistMatch) {
+        console.log('Found YouTube Music match:', {
+          searchTitle: title,
+          searchArtist: artist,
+          foundTitle: video.snippet.title,
+          foundArtist: video.snippet.channelTitle
+        });
+
+        return {
+          platform: 'youtubeMusic' as const,
+          url: `https://music.youtube.com/watch?v=${video.id.videoId}`
+        };
+      }
     }
 
-    return {
-      platform: 'youtubeMusic' as const,
-      url: `https://music.youtube.com/watch?v=${video.id.videoId}`
-    };
+    console.log('No matching YouTube Music track found for:', { title, artist });
+    return null;
   } catch (error) {
     console.error('Failed to search YouTube Music:', error);
     return null;
