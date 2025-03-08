@@ -16,6 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { getSpotifyTrackInfo } from "@/lib/spotify";
 import { getYoutubeVideoInfo } from "@/lib/youtube";
+import { searchAcrossPlatforms, platforms } from "@/lib/streaming-platforms";
 
 interface TrackFormProps {
   onPreview: (data: Track) => void;
@@ -40,23 +41,33 @@ export default function TrackForm({ onPreview, onSubmit, isSubmitting }: TrackFo
     },
   });
 
-  async function fetchTrackInfo(platform: "spotify" | "youtube", url: string) {
+  async function fetchTrackInfo(platform: "spotify" | "youtube", url: string | null) {
+    if (!url) return;
+
     try {
       setIsLoading(true);
       const result = await platformSchema.parseAsync({ url });
-      
-      const info = platform === "spotify" 
+
+      const info = platform === "spotify"
         ? await getSpotifyTrackInfo(result.url)
         : await getYoutubeVideoInfo(result.url);
-        
-      form.reset({
+
+      // Search for the track on other platforms
+      const streamingLinks = await searchAcrossPlatforms(info.title, info.artist);
+
+      const formData = {
         ...form.getValues(),
         ...info,
         [platform === "spotify" ? "spotifyUrl" : "youtubeUrl"]: url,
-      });
-      
-      onPreview(form.getValues() as Track);
-      
+        customLinks: streamingLinks.map(link => ({
+          label: `Listen on ${platforms[link.platform].name}`,
+          url: link.url
+        }))
+      };
+
+      form.reset(formData);
+      onPreview(formData as Track);
+
       toast({
         title: "Success",
         description: "Track information loaded successfully",
@@ -83,7 +94,11 @@ export default function TrackForm({ onPreview, onSubmit, isSubmitting }: TrackFo
               <FormLabel>Spotify URL</FormLabel>
               <FormControl>
                 <div className="flex gap-2">
-                  <Input {...field} placeholder="https://open.spotify.com/track/..." />
+                  <Input 
+                    {...field} 
+                    value={field.value || ''} 
+                    placeholder="https://open.spotify.com/track/..." 
+                  />
                   <Button
                     type="button"
                     variant="secondary"
@@ -107,7 +122,11 @@ export default function TrackForm({ onPreview, onSubmit, isSubmitting }: TrackFo
               <FormLabel>YouTube URL</FormLabel>
               <FormControl>
                 <div className="flex gap-2">
-                  <Input {...field} placeholder="https://youtube.com/watch?v=..." />
+                  <Input 
+                    {...field} 
+                    value={field.value || ''} 
+                    placeholder="https://youtube.com/watch?v=..." 
+                  />
                   <Button
                     type="button"
                     variant="secondary"
@@ -130,7 +149,11 @@ export default function TrackForm({ onPreview, onSubmit, isSubmitting }: TrackFo
             <FormItem>
               <FormLabel>Description</FormLabel>
               <FormControl>
-                <Textarea {...field} placeholder="Enter track description..." />
+                <Textarea 
+                  {...field} 
+                  value={field.value || ''} 
+                  placeholder="Enter track description..." 
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
