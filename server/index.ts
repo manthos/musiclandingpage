@@ -67,3 +67,5 @@ app.use((req, res, next) => {
     log(`serving on port ${port}`);
   });
 })();
+
+export default app;
