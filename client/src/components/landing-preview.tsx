@@ -6,6 +6,8 @@ import {
   SiYoutube,
   SiApplemusic,
   SiSoundcloud,
+  SiTidal,
+  SiAmazon,
   SiInstagram,
   SiFacebook,
   SiTiktok
@@ -28,6 +30,8 @@ export default function LandingPreview({ track }: LandingPreviewProps) {
     if (url.includes('youtube')) return SiYoutube;
     if (url.includes('apple')) return SiApplemusic;
     if (url.includes('soundcloud')) return SiSoundcloud;
+    if (url.includes('tidal')) return SiTidal;
+    if (url.includes('amazon')) return SiAmazon;
     return null;
   };
 

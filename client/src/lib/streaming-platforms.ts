@@ -21,6 +21,16 @@ export const platforms = {
     name: "SoundCloud",
     searchUrl: "https://api.soundcloud.com/tracks",
     icon: "SiSoundcloud",
+  },
+  tidal: {
+    name: "Tidal",
+    searchUrl: "https://api.tidal.com/v1/search",
+    icon: "SiTidal",
+  },
+  amazonMusic: {
+    name: "Amazon Music",
+    searchUrl: "https://music.amazon.com/search",
+    icon: "SiAmazon",
   }
 };
 
@@ -48,6 +58,20 @@ export async function searchAcrossPlatforms(title: string, artist: string): Prom
   links.push({
     platform: 'soundcloud',
     url: soundcloudUrl
+  });
+
+  // Simulate finding the track on Tidal
+  const tidalUrl = `https://listen.tidal.com/search?q=${encodeURIComponent(searchQuery)}`;
+  links.push({
+    platform: 'tidal',
+    url: tidalUrl
+  });
+
+  // Simulate finding the track on Amazon Music
+  const amazonMusicUrl = `https://music.amazon.com/search/${encodeURIComponent(searchQuery)}`;
+  links.push({
+    platform: 'amazonMusic',
+    url: amazonMusicUrl
   });
 
   return links;
