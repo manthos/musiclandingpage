@@ -1,38 +1,38 @@
 import { z } from "zod";
+import { searchTidalTrack } from "./tidal";
+import { searchYoutubeMusicTrack } from "./youtube-music";
 
 // Define supported platforms and their base URLs
 export const platforms = {
   spotify: {
     name: "Spotify",
-    searchUrl: "https://api.spotify.com/v1/search",
     icon: "SiSpotify",
   },
   youtube: {
     name: "YouTube",
-    searchUrl: "https://www.googleapis.com/youtube/v3/search",
     icon: "SiYoutube",
   },
   youtubeMusic: {
     name: "YouTube Music",
-    searchUrl: "https://music.youtube.com/search",
     icon: "SiYoutube",
   },
   appleMusic: {
     name: "Apple Music",
-    searchUrl: "https://api.music.apple.com/v1/catalog/us/search",
-    icon: "SiAppleMusic",
+    icon: "SiApplemusic",
   },
   soundcloud: {
     name: "SoundCloud",
-    searchUrl: "https://api.soundcloud.com/tracks",
     icon: "SiSoundcloud",
+  },
+  tidal: {
+    name: "Tidal",
+    icon: "SiTidal",
   },
   amazonMusic: {
     name: "Amazon Music",
-    searchUrl: "https://music.amazon.com/search",
     icon: "SiAmazon",
   }
-};
+} as const;
 
 export type Platform = keyof typeof platforms;
 
@@ -43,35 +43,40 @@ export interface StreamingLink {
 
 // Search for a track across multiple platforms
 export async function searchAcrossPlatforms(title: string, artist: string): Promise<StreamingLink[]> {
-  const searchQuery = `${title} ${artist}`.trim();
   const links: StreamingLink[] = [];
 
-  // Add YouTube Music link
-  const youtubeMusicUrl = `https://music.youtube.com/search?q=${encodeURIComponent(searchQuery)}`;
-  links.push({
-    platform: 'youtubeMusic',
-    url: youtubeMusicUrl
-  });
+  // Try to find the track on Tidal using their API
+  const tidalResult = await searchTidalTrack(title, artist);
+  if (tidalResult) {
+    links.push(tidalResult);
+  }
 
-  // Add Apple Music link
-  const appleMusicUrl = `https://music.apple.com/us/search?term=${encodeURIComponent(searchQuery)}`;
+  // Try to find the track on YouTube Music
+  const youtubeMusicResult = await searchYoutubeMusicTrack(title, artist);
+  if (youtubeMusicResult) {
+    links.push(youtubeMusicResult);
+  }
+
+  // TODO: Implement actual API verification for these platforms
+  // For now, generate search URLs
+  const urlEncodedQuery = encodeURIComponent(`${title} ${artist}`);
+
+  // Add Apple Music link (requires Apple Music API integration)
   links.push({
     platform: 'appleMusic',
-    url: appleMusicUrl
+    url: `https://music.apple.com/us/search?term=${urlEncodedQuery}`
   });
 
-  // Add SoundCloud link
-  const soundcloudUrl = `https://soundcloud.com/search?q=${encodeURIComponent(searchQuery)}`;
+  // Add SoundCloud link (requires SoundCloud API integration)
   links.push({
     platform: 'soundcloud',
-    url: soundcloudUrl
+    url: `https://soundcloud.com/search?q=${urlEncodedQuery}`
   });
 
-  // Add Amazon Music link
-  const amazonMusicUrl = `https://music.amazon.com/search/${encodeURIComponent(searchQuery)}`;
+  // Add Amazon Music link (requires Amazon Music API integration)
   links.push({
     platform: 'amazonMusic',
-    url: amazonMusicUrl
+    url: `https://music.amazon.com/search/${urlEncodedQuery}`
   });
 
   return links;
