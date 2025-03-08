@@ -14,13 +14,13 @@ const youtubeMusicSearchSchema = z.object({
 
 export async function searchYoutubeMusicTrack(title: string, artist: string) {
   try {
-    const searchQuery = `${title} ${artist} audio`;
+    const searchQuery = `${title} ${artist}`; // Removed 'audio' suffix
     const params = new URLSearchParams({
       part: 'snippet',
       q: searchQuery,
       type: 'video',
       videoCategoryId: '10', // Music category
-      maxResults: '5', // Get more results to increase match chances
+      maxResults: '10', // Increased results for better matching
       key: import.meta.env.VITE_YOUTUBE_API_KEY
     });
 
@@ -46,15 +46,22 @@ export async function searchYoutubeMusicTrack(title: string, artist: string) {
     for (const video of data.items) {
       const videoTitle = video.snippet.title.toLowerCase();
       const videoArtist = video.snippet.channelTitle.toLowerCase();
+      const searchTitle = title.toLowerCase();
+      const searchArtist = artist.toLowerCase();
 
-      // More lenient matching - check if title contains the song name
-      // and either the video title or channel contains the artist name
-      const titleMatch = videoTitle.includes(title.toLowerCase());
-      const artistMatch = 
-        videoTitle.includes(artist.toLowerCase()) || 
-        videoArtist.includes(artist.toLowerCase());
+      console.log('Checking YouTube Music result:', {
+        videoTitle,
+        videoArtist,
+        searchTitle,
+        searchArtist
+      });
 
-      if (titleMatch && artistMatch) {
+      // Very lenient matching - just check if video title contains part of the song name
+      // or if the channel matches part of the artist name
+      const titleMatch = videoTitle.includes(searchTitle) || searchTitle.includes(videoTitle);
+      const artistMatch = videoArtist.includes(searchArtist) || searchArtist.includes(videoArtist);
+
+      if (titleMatch) {
         console.log('Found YouTube Music match:', {
           searchTitle: title,
           searchArtist: artist,
