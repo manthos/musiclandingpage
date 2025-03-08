@@ -27,22 +27,32 @@ export async function searchYoutubeMusicTrack(title: string, artist: string) {
       `https://www.googleapis.com/youtube/v3/search?${params}`
     );
 
-    if (!res.ok) return null;
+    if (!res.ok) {
+      console.error('YouTube Music API error:', await res.text());
+      return null;
+    }
 
     const data = youtubeMusicSearchSchema.parse(await res.json());
-    
-    if (data.items.length === 0) return null;
+
+    if (data.items.length === 0) {
+      console.log('No YouTube Music results found for:', searchQuery);
+      return null;
+    }
 
     // Get the first result that matches the criteria
     const video = data.items[0];
-    
+
     // Verify if the title and artist roughly match
     const normalizedSearchTitle = `${title} ${artist}`.toLowerCase();
     const normalizedResultTitle = `${video.snippet.title} ${video.snippet.channelTitle}`.toLowerCase();
-    
+
     // Simple matching - if the result contains both title and artist
     if (!normalizedResultTitle.includes(title.toLowerCase()) || 
         !normalizedResultTitle.includes(artist.toLowerCase())) {
+      console.log('YouTube Music result did not match criteria:', {
+        searchTitle: normalizedSearchTitle,
+        resultTitle: normalizedResultTitle
+      });
       return null;
     }
 
